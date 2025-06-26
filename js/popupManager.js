@@ -2,10 +2,7 @@
  * Module quản lý popup hiển thị thông tin
  * Xử lý việc format và hiển thị thông tin từ WMS query
  */
-define([
-    "arcgis/config"
-], function (Config) {
-    
+define(["arcgis/config"], function (Config) {
     var map = null;
 
     /**
@@ -145,44 +142,12 @@ define([
      * @returns {string} Giá trị đã được format
      */
     function formatValue(value, fieldName) {
-        if (typeof value === "number") {
-            // Format số theo loại field
-            if (
-                fieldName.toLowerCase().indexOf("dientich") !== -1 ||
-                fieldName.toLowerCase().indexOf("area") !== -1
-            ) {
-                return (
-                    value.toLocaleString("vi-VN", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    }) + " m²"
-                );
-            } else if (
-                fieldName.toLowerCase().indexOf("length") !== -1 ||
-                fieldName.toLowerCase().indexOf("chuvi") !== -1
-            ) {
-                return (
-                    value.toLocaleString("vi-VN", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    }) + " m"
-                );
-            } else {
-                return value.toLocaleString("vi-VN");
-            }
-        } else if (typeof value === "string") {
-            // Format string - cắt ngắn nếu quá dài
-            if (value.length > 100) {
-                return value.substring(0, 100) + "...";
-            }
-            return value;
-        }
-
+        if (typeof value === "number") return value.toLocaleString("vi-VN");
         return value;
     }
 
     return {
         initialize: initialize,
-        displayFeatureInfo: displayFeatureInfo
+        displayFeatureInfo: displayFeatureInfo,
     };
 });

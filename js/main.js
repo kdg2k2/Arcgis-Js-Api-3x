@@ -103,25 +103,6 @@ define([
                 tool: ToolManager,
             };
         },
-        addWMSLayer: function (wmsConfig) {
-            if (wmsConfig) {
-                Config.WMS_CONFIG[0] = wmsConfig;
-            }
-            WMSManager.addWMSLayer();
-        },
-        updateFieldMapping: function (fieldMapping) {
-            Object.assign(Config.FIELD_MAPPING, fieldMapping);
-        },
-        clearAllPolygons: function () {
-            PolygonManager.clearAllGraphics();
-            UIManager.updateUI();
-        },
-        getPolygonStats: function () {
-            return {
-                total: PolygonManager.getPolygonCount(),
-                selected: PolygonManager.getSelectedCount(),
-            };
-        },
     };
 
     // Để dùng được ở ngoài, gán lên window (optional)

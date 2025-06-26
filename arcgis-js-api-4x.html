@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>ArcGIS JS 4.32 + Bootstrap 5 Offcanvas Basemap Switcher</title>
+        <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/4.32/esri/themes/light/main.css"
+        />
+        <!-- Bootstrap 5 CSS -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <!-- Bootstrap Icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        />
+        <style>
+            html,
+            body,
+            #viewDiv {
+                padding: 0;
+                margin: 0;
+                height: 100%;
+                width: 100%;
+            }
+
+            .esri-ui-manual-container > .esri-component {
+                display: none !important;
+            }
+
+            /* Nút mở offcanvas đặt ở vị trí nổi cạnh map tools */
+            #basemapOffcanvasBtn {
+                position: absolute;
+                top: 80px;
+                left: 15px;
+                z-index: 20;
+                background: white;
+                border: none;
+                width: 32px;
+                height: 32px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+            #basemapOffcanvasBtn:focus {
+                outline: none;
+                box-shadow: 0 0 0 2px #0d6efd;
+            }
+            .offcanvas-backdrop.show {
+                opacity: 0.25;
+            }
+            div#basemapOffcanvas {
+                position: absolute;
+                height: 260px;
+                width: 260px;
+                left: 10px;
+                top: 10px;
+                border-radius: 15px;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="viewDiv"></div>
+        
+        <button
+            id="basemapOffcanvasBtn"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#basemapOffcanvas"
+            aria-controls="basemapOffcanvas"
+            title="Chọn nền bản đồ"
+        >
+            <i class="bi bi-map"></i>
+        </button>
+        <div
+            class="offcanvas offcanvas-start"
+            tabindex="-1"
+            id="basemapOffcanvas"
+            aria-labelledby="basemapOffcanvasLabel"
+        >
+            <div class="offcanvas-header py-2">
+                <h6 class="offcanvas-title" id="basemapOffcanvasLabel">
+                    Chọn nền bản đồ
+                </h6>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="offcanvas"
+                    aria-label="Đóng"
+                ></button>
+            </div>
+            <div class="offcanvas-body py-2">
+                <div class="list-group" id="basemapList"></div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://js.arcgis.com/4.32/"></script>
+        <script>
+            require(["esri/Map", "esri/views/MapView"], function (
+                Map,
+                MapView
+            ) {
+                // Danh sách basemap và label hiển thị
+                const basemaps = [
+                    { id: "streets-vector", label: "Streets" },
+                    { id: "satellite", label: "Satellite" },
+                    { id: "topo-vector", label: "Topographic" },
+                    { id: "hybrid", label: "Hybrid" },
+                    { id: "osm", label: "OpenStreetMap" },
+                    { id: "dark-gray-vector", label: "Dark Gray" },
+                    { id: "gray-vector", label: "Gray" },
+                    { id: "navigation-vector", label: "Navigation" },
+                    { id: "terrain", label: "Terrain" },
+                ];
+                let currentBasemapId = basemaps[0].id;
+
+                // Khởi tạo map và view
+                const map = new Map({
+                    basemap: currentBasemapId,
+                });
+                const view = new MapView({
+                    container: "viewDiv",
+                    map: map,
+                    center: [106.695, 10.775],
+                    zoom: 12,
+                });
+
+                // Render danh sách basemap vào offcanvas
+                const basemapList = document.getElementById("basemapList");
+                function renderBasemapList() {
+                    basemapList.innerHTML = "";
+                    basemaps.forEach((bm) => {
+                        const btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className =
+                            "list-group-item list-group-item-action" +
+                            (bm.id === currentBasemapId ? " active" : "");
+                        btn.innerText = bm.label;
+                        btn.onclick = function () {
+                            map.basemap = bm.id;
+                            currentBasemapId = bm.id;
+                            renderBasemapList();
+                        };
+                        basemapList.appendChild(btn);
+                    });
+                }
+                view.when(renderBasemapList);
+
+                // Đảm bảo cập nhật lại highlight khi mở lại offcanvas
+                const offcanvasEl = document.getElementById("basemapOffcanvas");
+                offcanvasEl.addEventListener(
+                    "show.bs.offcanvas",
+                    renderBasemapList
+                );
+
+                const createCustomToolBtn = () => {
+                    document.querySelector("body").appendChild(
+                        `
+
+                    `
+                    );
+                };
+            });
+        </script>
+    </body>
+</html>

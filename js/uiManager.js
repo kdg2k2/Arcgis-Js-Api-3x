@@ -157,11 +157,11 @@ define([
 
         // Tạo các button
         const controlBtn = createCustomButton(
-            '<i class="bi bi-tools"></i>',
+            '<i class="fa-light fa-screwdriver-wrench"></i>',
             controlBtnClickEvent
         );
         const infoBtn = createCustomButton(
-            '<i class="bi bi-info-circle"></i>',
+            '<i class="fa-light fa-circle-info"></i>',
             infoBtnClickEvent
         );
 
