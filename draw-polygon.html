@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width,user-scalable=no" />
+
+        <meta
+            name="viewport"
+            content="initial-scale=1, maximum-scale=1,user-scalable=no"
+        />
+        <title>Maps Toolbar</title>
+
+        <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/3.46/dijit/themes/nihilo/nihilo.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/3.46/esri/css/esri.css"
+        />
+        <style>
+            html,
+            body,
+            #mainWindow {
+                font-family: sans-serif;
+                height: 100%;
+                width: 100%;
+            }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            #header {
+                height: 80px;
+                overflow: auto;
+                padding: 0.5em;
+            }
+        </style>
+
+        <script src="https://js.arcgis.com/3.46/"></script>
+        <script>
+            var map, toolbar, symbol, geomTask;
+
+            require([
+                "esri/map",
+                "esri/toolbars/draw",
+                "esri/graphic",
+
+                "esri/symbols/SimpleFillSymbol",
+
+                "dojo/parser",
+                "dijit/registry",
+
+                "dojo/domReady!",
+            ], function (
+                Map,
+                Draw,
+                Graphic,
+                SimpleFillSymbol,
+                parser,
+                registry
+            ) {
+                parser.parse();
+
+                map = new Map("map", {
+                    basemap: "streets-vector",
+                    center: [-15.469, 36.428],
+                    zoom: 3,
+                });
+
+                map.on("load", () => {
+                    toolbar = new Draw(map);
+                    toolbar.on("draw-end", addDrawedPolygonToMap);
+                });
+
+                registry.forEach((d) => {
+                    if (d.declaredClass === "dijit.form.Button")
+                        d.on("click", activateTool);
+                });
+
+                function activateTool() {
+                    var tool = this.params["data-geometry-type"].toUpperCase();
+                    toolbar.activate(Draw[tool]);
+                    map.hideZoomSlider();
+                }
+
+                function addDrawedPolygonToMap(evt) {
+                    var symbol=new SimpleFillSymbol();
+                    toolbar.deactivate();
+                    map.showZoomSlider();
+
+                    var graphic = new Graphic(evt.geometry, symbol);
+                    map.graphics.add(graphic);
+                }
+            });
+        </script>
+    </head>
+    <body class="nihilo">
+        <div id="mainWindow">
+            <div id="header">
+                <span>Draw:<br /></span>
+                <button
+                    data-dojo-type="dijit/form/Button"
+                    data-geometry-type="polygon"
+                >
+                    Polygon
+                </button>
+            </div>
+            <div id="map"></div>
+        </div>
+    </body>
+</html>

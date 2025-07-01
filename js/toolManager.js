@@ -2,11 +2,16 @@
  * Module quản lý các công cụ vẽ và chỉnh sửa
  * Xử lý việc kích hoạt/vô hiệu hóa các tool và xử lý sự kiện
  */
-define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
-    Draw,
-    Edit,
-    on
-) {
+define([
+    "esri/geometry/Point",
+    "esri/geometry/geometryEngine",
+    "esri/symbols/TextSymbol",
+    "esri/symbols/Font",
+    "dojo/_base/Color",
+    "esri/toolbars/draw",
+    "esri/toolbars/edit",
+    "dojo/on",
+], function (Point, geometryEngine, TextSymbol, Font, Color, Draw, Edit, on) {
     var map = null;
     var drawToolbar = null;
     var editToolbar = null;
@@ -14,6 +19,7 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
     var polygonManager = null;
     var uiManager = null;
     var lengthLabels = [];
+    var tempLengthLabels = [];
 
     /**
      * Khởi tạo Tool Manager
@@ -43,15 +49,10 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
         on(drawToolbar, "draw-end", handleDrawEnd);
 
         // Đo chiều dài khi vẽ
-        on(drawToolbar, "draw-start", function () {
-            clearLengthLabels();
-        });
-
-        on(drawToolbar, "vertex-add", showLengthLabels);
-        on(drawToolbar, "vertex-move", showLengthLabels);
-        on(drawToolbar, "draw-end", function () {
-            clearLengthLabels();
-        });
+        on(drawToolbar, "draw-start", clearTempLabels);
+        on(drawToolbar, "vertex-add", showTempLengths);
+        on(drawToolbar, "vertex-move", showTempLengths);
+        on(drawToolbar, "vertex-remove", showTempLengths);
     }
 
     /**
@@ -255,6 +256,58 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
             map.graphics.remove(g);
         });
         lengthLabels = [];
+    }
+
+    function clearTempLabels() {
+        tempLengthLabels.forEach(function (g) {
+            map.graphics.remove(g);
+        });
+        tempLengthLabels = [];
+    }
+
+    function showTempLengths(evt) {
+        clearTempLabels();
+
+        var path = evt.geometry.rings?.[0] || evt.geometry.paths?.[0];
+        if (!path || path.length < 2) return;
+
+        for (var i = 1; i < path.length; i++) {
+            var p1 = new Point(
+                path[i - 1][0],
+                path[i - 1][1],
+                map.spatialReference
+            );
+            var p2 = new Point(path[i][0], path[i][1], map.spatialReference);
+            var mid = new Point(
+                (p1.x + p2.x) / 2,
+                (p1.y + p2.y) / 2,
+                map.spatialReference
+            );
+
+            var len = geometryEngine.geodesicLength(
+                {
+                    paths: [
+                        [
+                            [p1.x, p1.y],
+                            [p2.x, p2.y],
+                        ],
+                    ],
+                    spatialReference: map.spatialReference,
+                    type: "polyline",
+                },
+                "meters"
+            );
+
+            var label = new esri.Graphic(
+                mid,
+                new TextSymbol(len.toFixed(1) + " m")
+                    .setColor(new Color("red"))
+                    .setFont(new Font("10pt").setWeight("bold"))
+            );
+
+            map.graphics.add(label);
+            tempLengthLabels.push(label);
+        }
     }
 
     return {
