@@ -13,6 +13,7 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
     var currentTool = null;
     var polygonManager = null;
     var uiManager = null;
+    var lengthLabels = [];
 
     /**
      * Khởi tạo Tool Manager
@@ -40,6 +41,17 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
 
         // Lắng nghe sự kiện khi vẽ xong
         on(drawToolbar, "draw-end", handleDrawEnd);
+
+        // Đo chiều dài khi vẽ
+        on(drawToolbar, "draw-start", function () {
+            clearLengthLabels();
+        });
+
+        on(drawToolbar, "vertex-add", showLengthLabels);
+        on(drawToolbar, "vertex-move", showLengthLabels);
+        on(drawToolbar, "draw-end", function () {
+            clearLengthLabels();
+        });
     }
 
     /**
@@ -199,6 +211,50 @@ define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
         } else {
             alert("Vui lòng chọn đúng 1 polygon để chỉnh sửa");
         }
+    }
+
+    function showLengthLabels(evt) {
+        clearLengthLabels();
+
+        var path = evt.geometry.rings?.[0] || evt.geometry.paths?.[0];
+        if (!path || path.length < 2) return;
+
+        for (var i = 1; i < path.length; i++) {
+            var p1 = map.toMap(path[i - 1]);
+            var p2 = map.toMap(path[i]);
+            var mid = {
+                x: (p1.x + p2.x) / 2,
+                y: (p1.y + p2.y) / 2,
+                spatialReference: p1.spatialReference,
+            };
+
+            var len = geometryEngine.geodesicLength(
+                {
+                    paths: [[p1, p2]],
+                    spatialReference: p1.spatialReference,
+                    type: "polyline",
+                },
+                "meters"
+            );
+
+            var label = new esri.Graphic(
+                new esri.geometry.Point(mid),
+                new esri.symbol.TextSymbol(len.toFixed(1) + " m")
+                    .setColor(new dojo.Color("#000"))
+                    .setFont(new esri.symbol.Font("12pt").setWeight("bold"))
+                    .setAlign(esri.symbol.TextSymbol.ALIGN_MIDDLE)
+            );
+
+            lengthLabels.push(label);
+            map.graphics.add(label);
+        }
+    }
+
+    function clearLengthLabels() {
+        lengthLabels.forEach(function (g) {
+            map.graphics.remove(g);
+        });
+        lengthLabels = [];
     }
 
     return {

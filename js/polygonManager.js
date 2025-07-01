@@ -5,9 +5,12 @@
 define([
     "esri/graphic",
     "esri/geometry/geometryEngine",
-    "arcgis/symbols"
-], function (Graphic, geometryEngine, Symbols) {
-    
+    "arcgis/symbols",
+    "esri/geometry/Point",
+    "esri/symbols/TextSymbol",
+    "esri/symbols/Font",
+    "dojo/_base/Color",
+], function (Graphic, geometryEngine, Symbols, Point, TextSymbol, Font, Color) {
     var map = null;
     var selectedGraphics = [];
     var symbols = null;
@@ -28,6 +31,7 @@ define([
     function createPolygon(geometry) {
         var graphic = new Graphic(geometry, symbols.polygonSymbol);
         map.graphics.add(graphic);
+        showPolygonEdgeLengths(geometry);
     }
 
     /**
@@ -94,7 +98,10 @@ define([
 
                 // Thêm các polygon mới sau khi chia tách
                 splitResults.forEach(function (geometry) {
-                    var newGraphic = new Graphic(geometry, symbols.polygonSymbol);
+                    var newGraphic = new Graphic(
+                        geometry,
+                        symbols.polygonSymbol
+                    );
                     map.graphics.add(newGraphic);
                 });
                 return true;
@@ -134,7 +141,10 @@ define([
                 selectedGraphics = [];
 
                 // Thêm polygon đã hợp nhất
-                var mergedGraphic = new Graphic(mergedGeometry, symbols.polygonSymbol);
+                var mergedGraphic = new Graphic(
+                    mergedGeometry,
+                    symbols.polygonSymbol
+                );
                 map.graphics.add(mergedGraphic);
                 return true;
             }
@@ -160,7 +170,7 @@ define([
      */
     function getPolygonCount() {
         if (!map || !map.graphics) return 0;
-        
+
         return map.graphics.graphics.filter(function (g) {
             return g.geometry && g.geometry.type === "polygon";
         }).length;
@@ -182,6 +192,46 @@ define([
         return selectedGraphics;
     }
 
+    function showPolygonEdgeLengths(geometry) {
+        var ring = geometry.rings[0];
+        for (var i = 0; i < ring.length - 1; i++) {
+            var p1 = new Point(ring[i][0], ring[i][1], map.spatialReference);
+            var p2 = new Point(
+                ring[i + 1][0],
+                ring[i + 1][1],
+                map.spatialReference
+            );
+
+            var mid = new Point(
+                (p1.x + p2.x) / 2,
+                (p1.y + p2.y) / 2,
+                map.spatialReference
+            );
+
+            var len = geometryEngine.geodesicLength(
+                {
+                    paths: [
+                        [
+                            [p1.x, p1.y],
+                            [p2.x, p2.y],
+                        ],
+                    ],
+                    spatialReference: map.spatialReference,
+                    type: "polyline",
+                },
+                "meters"
+            );
+
+            var label = new esri.Graphic(
+                mid,
+                new TextSymbol(len.toFixed(1) + " m")
+                    .setColor(new Color("#fff"))
+                    .setFont(new Font("10pt").setWeight("bold"))
+            );
+            map.graphics.add(label);
+        }
+    }
+
     return {
         initialize: initialize,
         createPolygon: createPolygon,
@@ -192,6 +242,6 @@ define([
         clearAllGraphics: clearAllGraphics,
         getPolygonCount: getPolygonCount,
         getSelectedCount: getSelectedCount,
-        getSelectedGraphics: getSelectedGraphics
+        getSelectedGraphics: getSelectedGraphics,
     };
 });
