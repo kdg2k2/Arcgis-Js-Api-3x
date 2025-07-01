@@ -63,12 +63,14 @@ define([
         var splitBtn = dom.byId("splitBtn");
         var mergeBtn = dom.byId("mergeBtn");
         var clearBtn = dom.byId("clearBtn");
+        var editBtn = dom.byId("editBtn");
 
         if (drawBtn) on(drawBtn, "click", ToolManager.activateDrawTool);
         if (selectBtn) on(selectBtn, "click", ToolManager.activateSelectTool);
         if (splitBtn) on(splitBtn, "click", ToolManager.activateSplitTool);
         if (mergeBtn) on(mergeBtn, "click", ToolManager.mergePolygons);
         if (clearBtn) on(clearBtn, "click", ToolManager.clearAllGraphics);
+        if (editBtn) on(editBtn, "click", ToolManager.activateEditTool);
     }
 
     function bindMapClick() {

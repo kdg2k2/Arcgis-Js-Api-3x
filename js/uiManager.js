@@ -2,10 +2,7 @@
  * Module quản lý giao diện người dùng
  * Xử lý việc cập nhật UI, tạo buttons và xử lý events
  */
-define([
-    "dojo/dom"
-], function (dom) {
-    
+define(["dojo/dom"], function (dom) {
     var map = null;
     var polygonManager = null;
 
@@ -57,12 +54,16 @@ define([
 
         var splitBtn = dom.byId("splitBtn");
         var mergeBtn = dom.byId("mergeBtn");
+        var editBtn = dom.byId("editBtn");
 
         if (splitBtn) {
             splitBtn.disabled = selectedCount !== 1;
         }
         if (mergeBtn) {
             mergeBtn.disabled = selectedCount < 2;
+        }
+        if (editBtn) {
+            editBtn.disabled = selectedCount !== 1;
         }
     }
 
@@ -216,6 +217,6 @@ define([
         setActiveToolButton: setActiveToolButton,
         deactivateAllToolButtons: deactivateAllToolButtons,
         controlBtnClickEvent: controlBtnClickEvent,
-        infoBtnClickEvent: infoBtnClickEvent
+        infoBtnClickEvent: infoBtnClickEvent,
     };
 });

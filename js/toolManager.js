@@ -2,12 +2,11 @@
  * Module quản lý các công cụ vẽ và chỉnh sửa
  * Xử lý việc kích hoạt/vô hiệu hóa các tool và xử lý sự kiện
  */
-define([
-    "esri/toolbars/draw",
-    "esri/toolbars/edit",
-    "dojo/on"
-], function (Draw, Edit, on) {
-    
+define(["esri/toolbars/draw", "esri/toolbars/edit", "dojo/on"], function (
+    Draw,
+    Edit,
+    on
+) {
     var map = null;
     var drawToolbar = null;
     var editToolbar = null;
@@ -21,7 +20,11 @@ define([
      * @param {Object} polygonManagerInstance - Instance của polygon manager
      * @param {Object} uiManagerInstance - Instance của UI manager
      */
-    function initialize(mapInstance, polygonManagerInstance, uiManagerInstance) {
+    function initialize(
+        mapInstance,
+        polygonManagerInstance,
+        uiManagerInstance
+    ) {
         map = mapInstance;
         polygonManager = polygonManagerInstance;
         uiManager = uiManagerInstance;
@@ -67,7 +70,7 @@ define([
     function activateDrawTool() {
         setActiveTool("draw");
         drawToolbar.activate(Draw.POLYGON);
-        
+
         // Đóng panel điều khiển
         if (uiManager) {
             uiManager.controlBtnClickEvent();
@@ -88,7 +91,7 @@ define([
      */
     function activateSplitTool() {
         if (!polygonManager) return;
-        
+
         var selectedGraphics = polygonManager.getSelectedGraphics();
         if (selectedGraphics.length === 1) {
             setActiveTool("split");
@@ -108,7 +111,7 @@ define([
         if (!success) {
             alert("Vui lòng chọn ít nhất 2 polygon để hợp nhất");
         }
-        
+
         if (uiManager) {
             uiManager.updateUI();
         }
@@ -135,7 +138,7 @@ define([
      */
     function setActiveTool(tool) {
         currentTool = tool;
-        
+
         if (uiManager) {
             uiManager.setActiveToolButton(tool);
         }
@@ -147,7 +150,7 @@ define([
     function deactivateTools() {
         currentTool = null;
         drawToolbar.deactivate();
-        
+
         if (uiManager) {
             uiManager.deactivateAllToolButtons();
         }
@@ -187,6 +190,17 @@ define([
         return currentTool !== null;
     }
 
+    function activateEditTool() {
+        if (!polygonManager) return;
+        var selectedGraphics = polygonManager.getSelectedGraphics();
+        if (selectedGraphics.length === 1) {
+            setActiveTool("edit");
+            editToolbar.activate(Edit.EDIT_VERTICES, selectedGraphics[0]);
+        } else {
+            alert("Vui lòng chọn đúng 1 polygon để chỉnh sửa");
+        }
+    }
+
     return {
         initialize: initialize,
         activateDrawTool: activateDrawTool,
@@ -197,6 +211,7 @@ define([
         handleMapClick: handleMapClick,
         getCurrentTool: getCurrentTool,
         hasActiveTool: hasActiveTool,
-        deactivateTools: deactivateTools
+        deactivateTools: deactivateTools,
+        activateEditTool: activateEditTool,
     };
 });
